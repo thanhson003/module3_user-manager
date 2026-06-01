@@ -10,16 +10,13 @@
     <h1>User Management</h1>
     <h2>
         <a href="${pageContext.request.contextPath}/users?action=create">Add New User</a>
-        |
-        <a href="${pageContext.request.contextPath}/users?action=sort">Sort by Name</a>
+
     </h2>
 </center>
 <div align="center">
     <form method="get" action="${pageContext.request.contextPath}/users">
         <input type="hidden" name="action" value="search"/>
-        <label>Search by Country:</label>
-        <input type="text" name="country" placeholder="Enter country name"/>
-        <input type="submit" value="Search"/>
+
     </form>
     <br/>
     <table border="1" cellpadding="5">

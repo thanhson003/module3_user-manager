@@ -2,12 +2,8 @@ package com.example.usermanager.service;
 
 import com.example.usermanager.model.User;
 
-import java.sql.Connection;
+import java.sql.*;
 
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,45 +113,42 @@ public class UserDAO implements IUserDAO {
         return rowUpdated;
     }
 
-    public List<User> searchByCountry(String country) {
-        List<User> users = new ArrayList<>();
+    @Override
+    public User getUserById(int id) {
+        User user = null;
+        String query = "{CALL get_user_by_id(?)}";
+
         try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SEARCH_BY_COUNTRY)) {
-            preparedStatement.setString(1, "%" + country + "%");
-            System.out.println(preparedStatement);
-            ResultSet rs = preparedStatement.executeQuery();
+             CallableStatement callableStatement = connection.prepareCall(query)) {
+            callableStatement.setInt(1, id);
+            ResultSet rs = callableStatement.executeQuery();
 
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                String email = rs.getString("email");
-                String countryResult = rs.getString("country");
-                users.add(new User(id, name, email, countryResult));
-            }
-        } catch (SQLException e) {
-            printSQLException(e);
-        }
-        return users;
-    }
-
-    public List<User> sortByName() {
-        List<User> users = new ArrayList<>();
-        try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SORT_BY_NAME)) {
-            System.out.println(preparedStatement);
-            ResultSet rs = preparedStatement.executeQuery();
-
-            while (rs.next()) {
-                int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 String country = rs.getString("country");
-                users.add(new User(id, name, email, country));
+                user = new User(id, name, email, country);
             }
         } catch (SQLException e) {
             printSQLException(e);
         }
-        return users;
+        return user;
+    }
+
+    @Override
+    public void insertUserStore(User user) throws SQLException {
+        String query = "{CALL insert_user(?,?,?)}";
+
+        try (Connection connection = getConnection();
+             CallableStatement callableStatement = connection.prepareCall(query);) {
+            callableStatement.setString(1, user.getName());
+            callableStatement.setString(2, user.getEmail());
+            callableStatement.setString(3, user.getCountry());
+            System.out.println(callableStatement);
+            callableStatement.executeUpdate();
+        } catch (SQLException e) {
+            printSQLException(e);
+        }
     }
 
     private void printSQLException(SQLException ex) {
